@@ -29,4 +29,32 @@ vtest:
 ytest:
 	YPSILON_SITELIB=. $(YPSILON) test-infix.sps
 
+## --------------------------------------------------------------------
+
+.PHONY: dist
+
+TMPDIR		?= /tmp
+TARFILE		= $(TMPDIR)/wak-infix.tar.gz
+
+dist:
+	-@test -d "=dist" || mkdir "=dist"
+	-@test -f "=dist"/$(TARFILE) && rm -f "=dist"/$(TARFILE)
+	@tar --directory=.. --verbose --create --gzip --file=$(TARFILE)		\
+		--exclude=RCS                   --exclude=CVS                   \
+		--exclude=.git			--exclude=.git\*		\
+		--exclude=archives              --exclude=\*.ps			\
+		--exclude=\*.dvi                --exclude=tmp			\
+		--exclude=\*.gz                 --exclude=\*.tar                \
+		--exclude=\*.so                 --exclude=\*.o			\
+		--exclude=\*.a                  --exclude=\*.rpm                \
+		--exclude=\*.deb                --exclude=.emacs\*		\
+		--exclude=\*~                   --exclude=TAGS                  \
+		--exclude=config.log            --exclude=config.status         \
+		--exclude=config.cache						\
+		--exclude=autom4te.cache	--exclude="{arch}"              \
+		--exclude=.arch-ids		--exclude=\+\+\*                \
+		--exclude=\=\*							\
+		wak-infix
+	@mv --verbose --force $(TARFILE) "=dist"
+
 ### end of file
