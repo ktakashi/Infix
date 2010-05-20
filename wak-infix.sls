@@ -29,60 +29,53 @@
 
 (library (wak-infix)
   (export infix)
-  (import (rnrs))
+  (import (for (rnrs) run expand (meta 2)))
 
 
 (define-syntax infix
   (let ()
     (define-record-type <lexical-token>
       (fields (immutable category)
-	      (immutable location)
-	      (immutable value)
-	      (immutable length))
+	      (immutable value))
       (nongenerative wak:infix:<lexical-token>))
 
     ;;Constant tokens representing the recognised operators.
-    (define $add	(make-<lexical-token> 'ADD #f #'+ 0))
-    (define $sub	(make-<lexical-token> 'SUB #f #'- 0))
-    (define $mul	(make-<lexical-token> 'MUL #f #'* 0))
-    (define $div	(make-<lexical-token> 'DIV #f #'/ 0))
-    (define $mod	(make-<lexical-token> 'MOD #f #'mod 0))
-    (define $expt	(make-<lexical-token> 'EXPT #f #'expt 0))
-    (define $div0	(make-<lexical-token> 'DIV0 #f #'div 0))
-    (define $lt		(make-<lexical-token> 'LT #f #'< 0))
-    (define $gt		(make-<lexical-token> 'GT #f #'> 0))
-    (define $le		(make-<lexical-token> 'LE #f #'<= 0))
-    (define $ge		(make-<lexical-token> 'GE #f #'>= 0))
-    (define $eq		(make-<lexical-token> 'EQ #f #'= 0))
+    (define $add	(make-<lexical-token> 'ADD #'+))
+    (define $sub	(make-<lexical-token> 'SUB #'-))
+    (define $mul	(make-<lexical-token> 'MUL #'*))
+    (define $div	(make-<lexical-token> 'DIV #'/))
+    (define $mod	(make-<lexical-token> 'MOD #'mod))
+    (define $expt	(make-<lexical-token> 'EXPT #'expt))
+    (define $div0	(make-<lexical-token> 'DIV0 #'div))
+    (define $lt		(make-<lexical-token> 'LT #'<))
+    (define $gt		(make-<lexical-token> 'GT #'>))
+    (define $le		(make-<lexical-token> 'LE #'<=))
+    (define $ge		(make-<lexical-token> 'GE #'>=))
+    (define $eq		(make-<lexical-token> 'EQ #'=))
     ;;Here we  use the  #'if syntax  object as semantic  value: it  is a
     ;;trick to avoid  insertion of a raw value: the  parser will take it
     ;;and use it as the IF in the output form.
-    (define $question	(make-<lexical-token> 'QUESTION-ID #f #'if 0))
-    (define $colon	(make-<lexical-token> 'COLON-ID #f #': 0))
+    (define $question	(make-<lexical-token> 'QUESTION-ID #'if))
+    (define $colon	(make-<lexical-token> 'COLON-ID #':))
 
     ;;Special constant  tokens.  Notice that  the left and  right parens
     ;;tokens  are wrapped  in  a list  because  below they  are used  as
     ;;arguments to APPEND.
-    (define $eoi		(make-<lexical-token> '*eoi* #f (eof-object) 0))
-    (define $left-paren		(make-<lexical-token> 'LPAREN #f #\( 0))
-    (define $right-paren	(make-<lexical-token> 'RPAREN #f #\) 0))
+    (define $eoi		(make-<lexical-token> '*eoi* (eof-object)))
+    (define $left-paren		(make-<lexical-token> 'LPAREN #\())
+    (define $right-paren	(make-<lexical-token> 'RPAREN #\)))
 
-    (define-syntax memv
+    (define-syntax memv-stx
       (syntax-rules ()
 	((_ ?atom ?stx)
 	 (free-identifier=? ?atom ?stx))
 	((_ ?atom ?stx ...)
 	 (or (free-identifier=? ?atom ?stx) ...))))
 
-    (define-syntax case
+    (define-syntax case-stx
       (syntax-rules (else)
 	((_ ?atom ((?s ...) ?e ...) ... (else ?b ...))
-	 (cond ((memv ?atom #'?s ...) ?e ...) ... (else ?b ...)))))
-
-    (define-syntax prefix
-      ;;Used to mark prefix-notation expressions in SYNTAX->LIST.
-      ;;
-      (identifier-syntax #f))
+	 (cond ((memv-stx ?atom (syntax ?s) ...) ?e ...) ... (else ?b ...)))))
 
     (define-syntax drop/stx
       (syntax-rules ()
@@ -105,7 +98,7 @@
       (syntax-case stx ()
 	((?begin . ?body)
 	 (and (identifier? #'?begin) (free-identifier=? #'begin #'?begin))
-	 (cons #'prefix #'?body))
+	 (cons #'begin #'?body))
 	(()		'())
 	((?car . ?cdr)	(cons (syntax->list #'?car) (syntax->list #'?cdr)))
 	(?atom		(identifier? #'?atom)	#'?atom)
@@ -123,30 +116,30 @@
 	  (cond ((identifier? atom)
 		 (stx-list->reversed-tokens
 		  (cdr sexp)
-		  (cons (case atom
-			  ((+)			$add)
-			  ((-)			$sub)
-			  ((*)			$mul)
-			  ((/)			$div)
-			  ((% mod)		$mod)
-			  ((^ expt)		$expt)
-			  ((// div)		$div0)
-			  ((<)			$lt)
-			  ((>)			$gt)
-			  ((<=)			$le)
-			  ((>=)			$ge)
-			  ((=)			$eq)
-			  ((?)			$question)
-			  ((:)			$colon)
+		  (cons (case-stx atom
+			  ((+)		$add)
+			  ((-)		$sub)
+			  ((*)		$mul)
+			  ((/)		$div)
+			  ((% mod)	$mod)
+			  ((^ expt)	$expt)
+			  ((// div)	$div0)
+			  ((<)		$lt)
+			  ((>)		$gt)
+			  ((<=)		$le)
+			  ((>=)		$ge)
+			  ((=)		$eq)
+			  ((?)		$question)
+			  ((:)		$colon)
 			  (else
-			   (make-<lexical-token> 'ID #f atom 0)))
+			   (make-<lexical-token> 'ID atom)))
 			reversed-tokens)))
 		((pair? atom)
 		 (if (and (identifier? (car atom))
-			  (free-identifier=? #'prefix (car atom)))
+			  (free-identifier=? #'begin (car atom)))
 		     (stx-list->reversed-tokens
 		      (cdr sexp)
-		      (cons (make-<lexical-token> 'NUM #f (cons #'begin (cdr atom)) 0)
+		      (cons (make-<lexical-token> 'NUM (cons #'begin (cdr atom)))
 			    reversed-tokens))
 		   ;;Parentheses  in reverse  order  because the  TOKENS
 		   ;;will be reversed!!!
@@ -159,7 +152,7 @@
 		 ;;as operand.
 		 (stx-list->reversed-tokens
 		  (cdr sexp)
-		  (cons (make-<lexical-token> 'NUM #f atom 0)
+		  (cons (make-<lexical-token> 'NUM atom)
 			reversed-tokens)))))))
 
 
@@ -253,10 +246,7 @@
 	      (if (null? stack-values)
 		  (begin ;recovery failed, simulate end-of-input
 		    (stack-push! 0 #f) ;restore start stacks state
-		    (make-<lexical-token> '*eoi*
-					  (<lexical-token>-location lookahead)
-					  (eof-object)
-					  #f))
+		    (make-<lexical-token> '*eoi* (eof-object)))
 		(let* ((entry (state-entry-with-error-action (current-state))))
 		  (if entry
 		      (synchronise-lexer/skip-tokens (cdr entry))

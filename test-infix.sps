@@ -76,8 +76,8 @@
 (check (infix +1.1)		=> +1.1)
 (check (infix 1.1e10)		=> 1.1e10)
 (check (infix 1.1E10)		=> 1.1e10)
-(check (infix 1.1e-10)	=> 1.1e-10)
-(check (infix 1.1E-10)	=> 1.1e-10)
+(check (infix 1.1e-10)		=> 1.1e-10)
+(check (infix 1.1E-10)		=> 1.1e-10)
 (check (infix 1e10)		=> 1e10)
 (check (infix 1E10)		=> 1e10)
 (check (infix 1e-10)		=> 1e-10)
@@ -131,14 +131,14 @@
 (check (infix (- 2))		=> (- 2))
 (check (infix (1 + (- 2)))	=> (+ 1 (- 2)))
 (let ((a 2))
-  (check (infix (- a))	=> (- 2))
+  (check (infix (- a))		=> (- 2))
   (check (infix (1 + (- a)))	=> (+ 1 (- 2)))
   #f)
 
-(check (infix 1 // 3)		=> (div 1 3))
-(check (infix 1 div 3)	=> (div 1 3))
 (check (infix 1 % 3)		=> (mod 1 3))
-(check (infix 10 mod 3)	=> (mod 10 3))
+(check (infix 10 mod 3)		=> (mod 10 3))
+(check (infix 1 // 3)		=> (div 1 3))
+(check (infix 1 div 3)		=> (div 1 3))
 (check (infix 1 ^ 3)		=> (expt 1 3))
 (check (infix 10 expt 3)	=> (expt 10 3))
 
@@ -173,7 +173,7 @@
 
 (check (infix sin (1.1))		=> (sin 1.1))
 
-(check (infix cos (sin (1.1)))	=> (cos (sin 1.1)))
+(check (infix cos (sin (1.1)))		=> (cos (sin 1.1)))
 (check (infix cos (sin (1.1) + 4))	=> (cos (+ (sin 1.1) 4)))
 
 (check
