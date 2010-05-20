@@ -1,6 +1,6 @@
 
-			 Wak Infix
-			 =========
+                         Wak Infix
+                         =========
 
 
 Topics
@@ -8,7 +8,8 @@ Topics
 
   1. Introduction
   2. License
-  3. Install
+  3. Usage
+  4. Testing
   A. Credits
   B. Bug reports
   C. Resources
@@ -22,12 +23,12 @@ implementations; it provides  the INFIX macro which converts
 the  traditional  infix  notation  for  expressions  to  the
 equivalent Scheme's prefix notation.
 
-  The library has no dependencies, the implementation itself
+  The library has no dependencies; the implementation itself
 is a single, definitive, kill'em all DEFINE-SYNTAX form.
 
-  The  library supports  Ikarus, Larceny,  Mosh,  Vicare and
-Ypsilon, PLT Scheme; Petite Chez  should work but there is a
-bug right now.
+  The  library  supports   Ikarus,  Larceny,  Mosh,  Vicare,
+Ypsilon and  PLT Scheme; Petite Chez should  work, but there
+is a bug right now.
 
 
 2. License
@@ -53,7 +54,96 @@ License   along   with    this   program.    If   not,   see
 <http://www.gnu.org/licenses/>.
 
 
-3. Testing
+3. Usage
+--------
+
+To use the library just import (wak-infix) and use the INFIX
+macro: it expands to a  prefix expression to be evaluated at
+runtime,  in the  lexical context  of  the macro  use; as  a
+special case "(infix)" is equivalent to "(values)".
+
+  The macro allows us to evaluate forms like:
+
+    (let ((a 1) (b 2) (c 3))
+
+      (infix cos (a) * tan (b) / c)
+      ==> (/ (* (cos a) (tan b)) c)
+
+      (infix (cos (a) * tan (b) / c))
+      ==> (/ (* (cos a) (tan b)) c)
+
+      (infix a ? b : c)
+      ==> (if a b c)
+
+      #f)
+
+  Some interpretation rules:
+
+* Any Scheme value can be element of the input form.
+
+* The following  infix operators are supported,  in order of
+  increasing precedence from left to right:
+
+    + - * / div // mod % expt ^ < > <= >= =
+
+  remember that the Scheme comparison operators are meant to
+  return a boolean value, rather than a number object.
+
+  "//" is an alias for DIV,  "%" is an alias for MOD, "^" is
+  an alias for EXPT.
+
+  The  recognised  operators are  bindings  from the  (rnrs)
+  library; "//", "%" and "^" should be free identifiers.
+
+* The  if-then-else statement  involves the  special symbols
+  "?"  and  ":"  which  should be  free  identifiers.   This
+  statement has the least precedence of all.
+
+* Identifiers  which are  not operators  are  interpreted as
+  variable  references; if  an identifier  is followed  by a
+  list, it is a function call.
+
+* Function  calls with  one  or more  arguments require  the
+  arguments to  be grouped  in a list;  there is  no special
+  separator in the list of arguments.
+
+    (define (fun a b c)
+      (+ a b c))
+
+    (infix fun (1 2 3)) ==> (fun 1 2 3)
+
+  Notice that grouping the function arguments in a list is a
+  requirement of the infix expression grammar.
+
+* Numbers and  all the  other values are  just put  there as
+  operands.
+
+* As a  special exception: the binding BEGIN  from (rnrs) is
+  recognised  in  the  input  form  and allows  us  to  nest
+  prefix-notation expressions.
+
+    (infix (begin (+ 1 2))) => 3
+
+    (infix (begin
+             (let ((a 3))
+               (/ a 4))))
+    => 3/4
+
+    (let ((a 3))
+      (infix (begin (/ a 4))))
+    => 3/4
+
+    (let ((a 1) (b 2) (c 3))
+      (infix (1 + a ? (begin
+                        (+ 2 b))
+                    : 3 + c - 4))
+      ==> (if (+ 1 a)
+              (begin (+ 2 b))
+            (- (+ 3 c) 4))
+      #f)
+
+
+4. Testing
 ----------
 
 The included Makefile provides  a "test" rule which attempts
@@ -73,7 +163,9 @@ A. Credits
 ----------
 
 The library is the work  of Marco Maggi, the code is derived
-from the Nausicaa/Scheme distribution of libraries.
+from  the Nausicaa/Scheme  distribution  of libraries.   The
+only way  to regenerate the parser  table is to  built it in
+Nausicaa/Scheme and copy it into the library here.
 
   The  parser  driver  is   from  the  Lalr-scm  package  by
 Dominique Boucher, the parser  table is also generated using
@@ -90,7 +182,16 @@ tracker at Wak's site.
 C. Resources
 ------------
 
-The R6RS documents are available at:
+Wak's home page is at:
+
+                 <http://home.gna.org/wak/>
+
+and Wak's development takes place at:
+
+                 <http://gitorious.org/wak>
+               <http://gna.org/projects/wak>
+
+the R6RS documents are available at:
 
                    <http://www.r6rs.org>
 
@@ -101,34 +202,34 @@ Ikarus Scheme can be downloaded from:
 
 Larceny Scheme can be downloaded from:
 
-	<http://www.ccs.neu.edu/home/will/Larceny/>
-	  <https://trac.ccs.neu.edu/trac/larceny/>
+        <http://www.ccs.neu.edu/home/will/Larceny/>
+          <https://trac.ccs.neu.edu/trac/larceny/>
 
 Mosh Scheme can be downloaded from:
 
-	  <http://code.google.com/p/mosh-scheme/>
+          <http://code.google.com/p/mosh-scheme/>
 
 Petite Chez Scheme can be downloaded from:
 
-		  <http://www.scheme.com/>
+                  <http://www.scheme.com/>
 
 Ypsilon Scheme can be downloaded from:
 
-	    <http://code.google.com/p/ypsilon/>
+            <http://code.google.com/p/ypsilon/>
 
 Vicare Scheme can be downloaded from:
 
       <http://github.com/marcomaggi/vicare/downloads>
-	   <http://github.com/marcomaggi/vicare/>
+           <http://github.com/marcomaggi/vicare/>
 
-Wak's home page is at:
+the home page of the Nausicaa project is at:
 
-		 <http://home.gna.org/wak/>
+	<http://marcomaggi.github.com/nausicaa.html>
 
-and Wak's development takes place at:
+the  latest   version  of  the  Nausicaa   packages  can  be
+downloaded from:
 
-		 <http://gitorious.org/wak>
-	       <http://gna.org/projects/wak>
+     <http://github.com/marcomaggi/nausicaa/downloads>
 
 
 ### end of file

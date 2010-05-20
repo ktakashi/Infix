@@ -10,7 +10,7 @@ VICARE		= vicare
 
 .PHONY: test itest ltest mtest ptest vtest ytest ztest
 
-test: itest ltest mtest ptest vtest ytest
+test: itest ltest mtest ptest vtest ytest ztest
 
 itest:
 	IKARUS_LIBRARY_PATH=. $(IKARUS) --r6rs-script test-infix.sps
