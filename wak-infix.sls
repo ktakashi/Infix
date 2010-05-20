@@ -27,6 +27,7 @@
 ;;;
 
 
+#!r6rs
 (library (wak-infix)
   (export infix)
   (import (for (rnrs) run expand (meta 2)))

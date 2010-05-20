@@ -1,0 +1,139 @@
+
+			 Wak Infix
+			 =========
+
+
+Topics
+------
+
+  1. Introduction
+  2. License
+  3. Install
+  A. Credits
+  B. Bug reports
+  C. Resources
+
+
+1. Introduction
+---------------
+
+This package is a  distribution of libraries for R6RS Scheme
+implementations; it provides  the INFIX macro which converts
+the  traditional  infix  notation  for  expressions  to  the
+equivalent Scheme's prefix notation.
+
+  The library has no dependencies, the implementation itself
+is a single, definitive, kill'em all DEFINE-SYNTAX form.
+
+  The  library supports  Ikarus, Larceny,  Mosh,  Vicare and
+Ypsilon, PLT Scheme; Petite Chez  should work but there is a
+bug right now.
+
+
+2. License
+----------
+
+Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+Copyright (c) 2005-2008 Dominique Boucher
+
+This  program  is free  software:  you  can redistribute  it
+and/or modify it  under the terms of the  GNU General Public
+License as published by the Free Software Foundation, either
+version  3 of  the License,  or (at  your option)  any later
+version.
+
+This  program is  distributed in  the hope  that it  will be
+useful, but  WITHOUT ANY WARRANTY; without  even the implied
+warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
+PURPOSE.   See  the  GNU  General Public  License  for  more
+details.
+
+You should  have received a  copy of the GNU  General Public
+License   along   with    this   program.    If   not,   see
+<http://www.gnu.org/licenses/>.
+
+
+3. Testing
+----------
+
+The included Makefile provides  a "test" rule which attempts
+to run tests with  all the supported Scheme implementations.
+In detail the following rules are defined:
+
+  itest - Run tests with Ikarus
+  ltest - Run tests with Larceny
+  mtest - Run tests with Mosh
+  ptest - Run tests with Petite Chez
+  vtest - Run tests with Vicare
+  ytest - Run tests with Ypsilon
+  ztest - Run tests with PLT Scheme
+
+
+A. Credits
+----------
+
+The library is the work  of Marco Maggi, the code is derived
+from the Nausicaa/Scheme distribution of libraries.
+
+  The  parser  driver  is   from  the  Lalr-scm  package  by
+Dominique Boucher, the parser  table is also generated using
+Lalr-scm.
+
+
+B. Bug reports
+--------------
+
+Bug reports  are appreciated, register them  using the issue
+tracker at Wak's site.
+
+
+C. Resources
+------------
+
+The R6RS documents are available at:
+
+                   <http://www.r6rs.org>
+
+Ikarus Scheme can be downloaded from:
+
+       <http://www.cs.indiana.edu/~aghuloum/ikarus/>
+               <http://launchpad.net/ikarus>
+
+Larceny Scheme can be downloaded from:
+
+	<http://www.ccs.neu.edu/home/will/Larceny/>
+	  <https://trac.ccs.neu.edu/trac/larceny/>
+
+Mosh Scheme can be downloaded from:
+
+	  <http://code.google.com/p/mosh-scheme/>
+
+Petite Chez Scheme can be downloaded from:
+
+		  <http://www.scheme.com/>
+
+Ypsilon Scheme can be downloaded from:
+
+	    <http://code.google.com/p/ypsilon/>
+
+Vicare Scheme can be downloaded from:
+
+      <http://github.com/marcomaggi/vicare/downloads>
+	   <http://github.com/marcomaggi/vicare/>
+
+Wak's home page is at:
+
+		 <http://home.gna.org/wak/>
+
+and Wak's development takes place at:
+
+		 <http://gitorious.org/wak>
+	       <http://gna.org/projects/wak>
+
+
+### end of file
+# Local Variables:
+# mode: text
+# fill-column: 60
+# paragraph-start: "*"
+# End:

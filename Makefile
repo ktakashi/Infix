@@ -4,10 +4,11 @@ IKARUS		= ikarus
 LARCENY		= larceny
 MOSH		= mosh
 PETITE		= petite
+PLT		= plt-r6rs
 YPSILON		= ypsilon
 VICARE		= vicare
 
-.PHONY: test itest ltest mtest ptest vtest ytest
+.PHONY: test itest ltest mtest ptest vtest ytest ztest
 
 test: itest ltest mtest ptest vtest ytest
 
@@ -28,6 +29,9 @@ vtest:
 
 ytest:
 	YPSILON_SITELIB=. $(YPSILON) test-infix.sps
+
+ztest:
+	PLTCOLLECTS=$(PWD)/..:$(PLTCOLLECTS) plt-r6rs test-infix.sps
 
 ## --------------------------------------------------------------------
 
