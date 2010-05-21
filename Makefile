@@ -34,7 +34,7 @@ ytest:
 	YPSILON_SITELIB=. $(YPSILON) $(testdir)/test-infix.sps
 
 ztest:
-	PLTCOLLECTS=$(PWD)/..:$(PLTCOLLECTS) plt-r6rs $(testdir)/test-infix.sps
+	plt-r6rs ++path $(srcdir) $(testdir)/test-infix.sps
 
 ## --------------------------------------------------------------------
 
