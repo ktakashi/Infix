@@ -8,30 +8,33 @@ PLT		= plt-r6rs
 YPSILON		= ypsilon
 VICARE		= vicare
 
+srcdir		= .
+testdir		= $(srcdir)/tests
+
 .PHONY: test itest ltest mtest ptest vtest ytest ztest
 
 test: itest ltest mtest ptest vtest ytest ztest
 
 itest:
-	IKARUS_LIBRARY_PATH=. $(IKARUS) --r6rs-script test-infix.sps
+	IKARUS_LIBRARY_PATH=. $(IKARUS) --r6rs-script $(testdir)/test-infix.sps
 
 ltest:
-	LARCENY_LIBPATH=. $(LARCENY) -r6rs -program test-infix.sps
+	LARCENY_LIBPATH=. $(LARCENY) -r6rs -program $(testdir)/test-infix.sps
 
 mtest:
-	MOSH_LOADPATH=. $(MOSH) test-infix.sps
+	MOSH_LOADPATH=. $(MOSH) $(testdir)/test-infix.sps
 
 ptest:
-	CHEZSCHEMELIBDIRS=. CHEZSCHEMELIBEXTS=.sls $(PETITE) test-infix.sps
+	CHEZSCHEMELIBDIRS=. CHEZSCHEMELIBEXTS=.sls $(PETITE) $(testdir)/test-infix.sps
 
 vtest:
-	VICARE_LIBRARY_PATH=. $(VICARE) --r6rs-script test-infix.sps
+	VICARE_LIBRARY_PATH=. $(VICARE) --r6rs-script $(testdir)/test-infix.sps
 
 ytest:
-	YPSILON_SITELIB=. $(YPSILON) test-infix.sps
+	YPSILON_SITELIB=. $(YPSILON) $(testdir)/test-infix.sps
 
 ztest:
-	PLTCOLLECTS=$(PWD)/..:$(PLTCOLLECTS) plt-r6rs test-infix.sps
+	PLTCOLLECTS=$(PWD)/..:$(PLTCOLLECTS) plt-r6rs $(testdir)/test-infix.sps
 
 ## --------------------------------------------------------------------
 

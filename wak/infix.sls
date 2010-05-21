@@ -6,11 +6,15 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;	The  parser driver  is from  the Lalr-scm  package  by Dominique
+;;;	The parser  table and  the general concept  of the package  is a
+;;;	rework of Guile-Arith by Ian Grant.
+;;;
+;;;	  The parser  driver is from  the Lalr-scm package  by Dominique
 ;;;	Boucher; the parser table is also generated using Lalr-scm.
 ;;;
 ;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2005-2008 Dominique Boucher
+;;;Copyright (C) 2000 The Free Software Foundation
 ;;;
 ;;;This program is free software:  you can redistribute it and/or modify
 ;;;it under the terms of the  GNU General Public License as published by
@@ -28,7 +32,7 @@
 
 
 #!r6rs
-(library (wak-infix)
+(library (wak infix)
   (export infix)
   (import (for (rnrs) run expand (meta 2)))
 

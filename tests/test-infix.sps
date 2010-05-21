@@ -26,7 +26,7 @@
 
 
 (import (rnrs)
-  (wak-infix))
+  (wak infix))
 
 (define check-count		0)
 (define check-success-count	0)

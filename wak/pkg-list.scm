@@ -1,5 +1,5 @@
 (package (wak-infix (1))
   (libraries
-   ("wak-infix")))
+   (sls -> "wak")))
 
 ;;; end of file
