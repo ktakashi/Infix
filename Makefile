@@ -25,7 +25,7 @@ mtest:
 	MOSH_LOADPATH=. $(MOSH) $(testdir)/test-infix.sps
 
 ptest:
-	CHEZSCHEMELIBDIRS=. CHEZSCHEMELIBEXTS=.sls $(PETITE) $(testdir)/test-infix.sps
+	CHEZSCHEMELIBDIRS=. CHEZSCHEMELIBEXTS=.sls $(PETITE) --program $(testdir)/test-infix.sps
 
 vtest:
 	VICARE_LIBRARY_PATH=. $(VICARE) --r6rs-script $(testdir)/test-infix.sps
