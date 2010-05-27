@@ -10,6 +10,7 @@ Topics
   2. License
   3. Usage
   4. Testing
+  5. Installing
   A. Credits
   B. Bug reports
   C. Resources
@@ -158,6 +159,23 @@ In detail the following rules are defined:
   vtest - Run tests with Vicare
   ytest - Run tests with Ypsilon
   ztest - Run tests with PLT Scheme
+
+
+5. Installing
+-------------
+
+There is no "install" rule  in the Makefile, sorry.  We have
+to  install  the library  by  hand  with  commands like  the
+following:
+
+   cd <top of infix tree>
+   prefix=/usr/local
+   datarootdir=$prefix/share
+   datadir=$datarootdir
+   schemedir=$datadir/scheme
+   infixdir=$schemedir/infix
+   install -d $infixdir
+   install infix/infix.sls $infixdir
 
 
 A. Credits

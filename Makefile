@@ -1,5 +1,8 @@
 ## Makefile --
 
+PACKAGE_NAME	= infix
+PACKAGE_VERSION	= 1.0.0
+
 IKARUS		= ikarus
 LARCENY		= larceny
 MOSH		= mosh
@@ -11,7 +14,9 @@ VICARE		= vicare
 srcdir		= .
 testdir		= $(srcdir)/tests
 
-.PHONY: test itest ltest mtest ptest vtest ytest ztest
+.PHONY: all test itest ltest mtest ptest vtest ytest ztest
+
+all:
 
 test: itest ltest mtest ptest vtest ytest ztest
 
@@ -41,7 +46,7 @@ ztest:
 .PHONY: dist
 
 TMPDIR		?= /tmp
-TARFILE		= $(TMPDIR)/infix.tar.gz
+TARFILE		= $(TMPDIR)/$(PACKAGE_NAME)-$(PACKAGE_VERSION).tar.gz
 
 dist:
 	-@test -d "=dist" || mkdir "=dist"
