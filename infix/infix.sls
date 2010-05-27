@@ -39,10 +39,10 @@
 
 (define-syntax infix
   (let ()
-    (define-record-type <lexical-token>
-      (fields (immutable category)
-	      (immutable value))
-      (nongenerative wak:infix:<lexical-token>))
+    (define make-<lexical-token>	cons)
+    (define <lexical-token>?		pair?)
+    (define <lexical-token>-category	car)
+    (define <lexical-token>-value	cdr)
 
     ;;Constant tokens representing the recognised operators.
     (define $add	(make-<lexical-token> 'ADD #'+))
