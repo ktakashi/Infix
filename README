@@ -204,6 +204,10 @@ Maggi <marco.maggi-ipsu@poste.it>.
 C. Resources
 ------------
 
+The last revision of this package can be downloaded from:
+
+     <http://github.com/marcomaggi/nausicaa/downloads>
+
 The R6RS documents are available at:
 
                    <http://www.r6rs.org>
@@ -225,6 +229,10 @@ Mosh Scheme can be downloaded from:
 Petite Chez Scheme can be downloaded from:
 
                   <http://www.scheme.com/>
+
+PLT Scheme can be downloaded from:
+
+		<http://www.plt-scheme.org/>
 
 Ypsilon Scheme can be downloaded from:
 
