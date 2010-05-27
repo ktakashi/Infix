@@ -1,6 +1,6 @@
 
-                         Wak Infix
-                         =========
+			   Infix
+			   =====
 
 
 Topics
@@ -26,9 +26,8 @@ equivalent Scheme's prefix notation.
   The library has no dependencies; the implementation itself
 is a single, definitive, kill'em all DEFINE-SYNTAX form.
 
-  The  library  supports   Ikarus,  Larceny,  Mosh,  Vicare,
-Ypsilon and  PLT Scheme; Petite Chez should  work, but there
-is a bug right now.
+  The library  supports Ikarus, Larceny,  Mosh, Petite Chez,
+PLT Scheme, Vicare and Ypsilon.
 
 
 2. License
@@ -58,10 +57,11 @@ License   along   with    this   program.    If   not,   see
 3. Usage
 --------
 
-To use the library just import (wak-infix) and use the INFIX
-macro: it expands to a  prefix expression to be evaluated at
-runtime,  in the  lexical context  of  the macro  use; as  a
-special case "(infix)" is equivalent to "(values)".
+To use  the library  just import (infix  infix) and  use the
+INFIX  macro:  it  expands  to  a prefix  expression  to  be
+evaluated at  runtime, in the  lexical context of  the macro
+use;  as   a  special   case  "(infix)"  is   equivalent  to
+"(values)".
 
   The macro allows us to evaluate forms like:
 
@@ -179,23 +179,14 @@ Lalr-scm.
 B. Bug reports
 --------------
 
-Bug reports  are appreciated, register them  using the issue
-tracker at Wak's site.
+Bug  reports are appreciated,  send them  by email  to Marco
+Maggi <marco.maggi-ipsu@poste.it>.
 
 
 C. Resources
 ------------
 
-Wak's home page is at:
-
-                 <http://home.gna.org/wak/>
-
-and Wak's development takes place at:
-
-                 <http://gitorious.org/wak>
-               <http://gna.org/projects/wak>
-
-the R6RS documents are available at:
+The R6RS documents are available at:
 
                    <http://www.r6rs.org>
 

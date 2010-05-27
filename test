@@ -1,6 +1,6 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
-;;;Part of: Infix
+;;;Part of: Wak Infix
 ;;;Contents: tests for infix library
 ;;;Date: Sat Aug 15, 2009
 ;;;
@@ -25,7 +25,8 @@
 ;;;
 
 
-(import (rnrs) (infix infix))
+(import (rnrs)
+  (wak infix))
 
 (define check-count		0)
 (define check-success-count	0)

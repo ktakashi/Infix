@@ -1,6 +1,6 @@
 ;;; -*- coding: utf-8-unix -*-
 ;;;
-;;;Part of: Wak Infix
+;;;Part of: Infix
 ;;;Contents: implementation of the INFIX syntax
 ;;;Date: Tue May 18, 2010
 ;;;
@@ -32,7 +32,7 @@
 
 
 #!r6rs
-(library (wak infix)
+(library (infix infix)
   (export infix)
   (import (for (rnrs) run expand (meta 2)))
 

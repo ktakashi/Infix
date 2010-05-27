@@ -41,7 +41,7 @@ ztest:
 .PHONY: dist
 
 TMPDIR		?= /tmp
-TARFILE		= $(TMPDIR)/wak-infix.tar.gz
+TARFILE		= $(TMPDIR)/infix.tar.gz
 
 dist:
 	-@test -d "=dist" || mkdir "=dist"
@@ -61,7 +61,7 @@ dist:
 		--exclude=autom4te.cache	--exclude="{arch}"              \
 		--exclude=.arch-ids		--exclude=\+\+\*                \
 		--exclude=\=\*							\
-		wak-infix
+		infix
 	@mv --verbose --force $(TARFILE) "=dist"
 
 ### end of file
