@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Infix version 1.0.0, an infix to prefix transformer
+Subject: [announce] Infix 1.0.0, an infix to prefix transformer
 
 			   Infix
 			   =====
@@ -59,7 +59,7 @@ Credits
 
 The library is the work  of Marco Maggi, the code is derived
 from  the Nausicaa/Scheme  distribution  of libraries.   The
-only way  to regenerate the parser  table is to  built it in
+only way  to regenerate the parser  table is to  build it in
 Nausicaa/Scheme and copy it into the library here.
 
   The parser table and the general concept of the package is
@@ -69,6 +69,8 @@ a rework of Guile-Arith by Ian Grant.
 Dominique Boucher, the parser  table is also generated using
 Lalr-scm.
 
+--
+Marco Maggi
 
 ### end of file
 # Local Variables:
