@@ -27,8 +27,8 @@ equivalent Scheme's prefix notation.
   The library has no dependencies; the implementation itself
 is a single, definitive, kill'em all DEFINE-SYNTAX form.
 
-  The library  supports Ikarus, Larceny,  Mosh, Petite Chez,
-PLT Scheme, Vicare and Ypsilon.
+  The library supports  Guile, Ikarus, Larceny, Mosh, Petite
+Chez, PLT Scheme, Vicare and Ypsilon.
 
 
 2. License
@@ -152,6 +152,7 @@ The included Makefile provides  a "test" rule which attempts
 to run tests with  all the supported Scheme implementations.
 In detail the following rules are defined:
 
+  gtest - Run tests with Guile
   itest - Run tests with Ikarus
   ltest - Run tests with Larceny
   mtest - Run tests with Mosh
@@ -211,6 +212,10 @@ The last revision of this package can be downloaded from:
 The R6RS documents are available at:
 
                    <http://www.r6rs.org>
+
+Guile Scheme can be downloaded from:
+
+       <http://www.gnu.org/software/guile/guile.html>
 
 Ikarus Scheme can be downloaded from:
 

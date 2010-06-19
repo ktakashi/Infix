@@ -1,4 +1,4 @@
-;;; -*- coding: utf-8-unix -*-
+;;; -*- coding: utf-8 -*-
 ;;;
 ;;;Part of: Infix
 ;;;Contents: tests for infix library
@@ -97,8 +97,8 @@
 
 ;;; nan and infinity
 
-(check (infix +nan.0)		=> +nan.0)
-(check (infix -nan.0)		=> +nan.0)
+(check (nan? (infix +nan.0))	=> #t)
+(check (nan? (infix -nan.0))	=> #t)
 (check (infix +inf.0)		=> +inf.0)
 (check (infix -inf.0)		=> -inf.0)
 

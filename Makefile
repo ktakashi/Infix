@@ -1,8 +1,9 @@
 ## Makefile --
 
 PACKAGE_NAME	= infix
-PACKAGE_VERSION	= 1.0.0
+PACKAGE_VERSION	= 1.0.1
 
+GUILE		= guile
 IKARUS		= ikarus
 LARCENY		= larceny
 MOSH		= mosh
@@ -11,14 +12,19 @@ PLT		= plt-r6rs
 YPSILON		= ypsilon
 VICARE		= vicare
 
+GUILE_FLAGS	= -l guile-r6rs-setup.scm --autocompile -s
+
 srcdir		= .
 testdir		= $(srcdir)/tests
 
-.PHONY: all test itest ltest mtest ptest vtest ytest ztest
+.PHONY: all test gtest itest ltest mtest ptest vtest ytest ztest
 
 all:
 
-test: itest ltest mtest ptest vtest ytest ztest
+test: gtest itest ltest mtest ptest vtest ytest ztest
+
+gtest:
+	GUILE_LOAD_PATH=. $(GUILE) $(GUILE_FLAGS) $(testdir)/test-infix.sps
 
 itest:
 	IKARUS_LIBRARY_PATH=. $(IKARUS) --r6rs-script $(testdir)/test-infix.sps
