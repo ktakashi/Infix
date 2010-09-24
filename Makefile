@@ -8,7 +8,7 @@ IKARUS		= ikarus
 LARCENY		= larceny
 MOSH		= mosh
 PETITE		= petite
-PLT		= plt-r6rs
+RACKET		= plt-r6rs
 YPSILON		= ypsilon
 VICARE		= vicare
 
@@ -17,7 +17,7 @@ GUILE_FLAGS	= -l guile-r6rs-setup.scm --autocompile -s
 srcdir		= .
 testdir		= $(srcdir)/tests
 
-.PHONY: all test gtest itest ltest mtest ptest vtest ytest ztest
+.PHONY: all test gtest itest ltest mtest ptest vtest ytest rtest
 
 all:
 
@@ -44,8 +44,8 @@ vtest:
 ytest:
 	YPSILON_SITELIB=. $(YPSILON) $(testdir)/test-infix.sps
 
-ztest:
-	plt-r6rs ++path $(srcdir) $(testdir)/test-infix.sps
+rtest:
+	$(RACKET) ++path $(srcdir) $(testdir)/test-infix.sps
 
 ## --------------------------------------------------------------------
 

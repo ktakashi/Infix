@@ -28,7 +28,7 @@ equivalent Scheme's prefix notation.
 is a single, definitive, kill'em all DEFINE-SYNTAX form.
 
   The library supports  Guile, Ikarus, Larceny, Mosh, Petite
-Chez, PLT Scheme, Vicare and Ypsilon.
+Chez, Racket, Vicare and Ypsilon.
 
 
 2. License
@@ -159,7 +159,7 @@ In detail the following rules are defined:
   ptest - Run tests with Petite Chez
   vtest - Run tests with Vicare
   ytest - Run tests with Ypsilon
-  ztest - Run tests with PLT Scheme
+  rtest - Run tests with Racket (PLT Scheme)
 
 
 5. Installing
@@ -235,9 +235,9 @@ Petite Chez Scheme can be downloaded from:
 
                   <http://www.scheme.com/>
 
-PLT Scheme can be downloaded from:
+Racket can be downloaded from:
 
-		<http://www.plt-scheme.org/>
+		 <http://racket-lang.org/>
 
 Ypsilon Scheme can be downloaded from:
 
