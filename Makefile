@@ -3,7 +3,7 @@
 PACKAGE_NAME	= infix
 PACKAGE_VERSION	= 1.0.2
 
-GUILE		= guile-r6rs
+GUILE		= guile
 LARCENY		= larceny
 MOSH		= mosh
 PETITE		= petite
