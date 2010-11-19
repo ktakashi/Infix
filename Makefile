@@ -1,10 +1,9 @@
 ## Makefile --
 
 PACKAGE_NAME	= infix
-PACKAGE_VERSION	= 1.0.1
+PACKAGE_VERSION	= 1.0.2
 
-GUILE		= guile
-IKARUS		= ikarus
+GUILE		= guile-r6rs
 LARCENY		= larceny
 MOSH		= mosh
 PETITE		= petite
@@ -17,17 +16,14 @@ GUILE_FLAGS	= -l guile-r6rs-setup.scm --autocompile -s
 srcdir		= .
 testdir		= $(srcdir)/tests
 
-.PHONY: all test gtest itest ltest mtest ptest vtest ytest rtest
+.PHONY: all test gtest ltest mtest ptest vtest ytest rtest
 
 all:
 
-test: gtest itest ltest mtest ptest vtest ytest ztest
+test: gtest ltest mtest ptest vtest ytest rtest
 
 gtest:
 	GUILE_LOAD_PATH=. $(GUILE) $(GUILE_FLAGS) $(testdir)/test-infix.sps
-
-itest:
-	IKARUS_LIBRARY_PATH=. $(IKARUS) --r6rs-script $(testdir)/test-infix.sps
 
 ltest:
 	LARCENY_LIBPATH=. $(LARCENY) -r6rs -program $(testdir)/test-infix.sps

@@ -27,8 +27,8 @@ equivalent Scheme's prefix notation.
   The library has no dependencies; the implementation itself
 is a single, definitive, kill'em all DEFINE-SYNTAX form.
 
-  The library supports  Guile, Ikarus, Larceny, Mosh, Petite
-Chez, Racket, Vicare and Ypsilon.
+  The  library supports Guile,  Larceny, Mosh,  Petite Chez,
+Racket, Vicare and Ypsilon.
 
 
 2. License
@@ -153,7 +153,6 @@ to run tests with  all the supported Scheme implementations.
 In detail the following rules are defined:
 
   gtest - Run tests with Guile
-  itest - Run tests with Ikarus
   ltest - Run tests with Larceny
   mtest - Run tests with Mosh
   ptest - Run tests with Petite Chez
@@ -207,55 +206,50 @@ C. Resources
 
 The last revision of this package can be downloaded from:
 
-     <http://github.com/marcomaggi/nausicaa/downloads>
+	http://github.com/marcomaggi/infix/downloads
 
 The R6RS documents are available at:
 
-                   <http://www.r6rs.org>
+		    http://www.r6rs.org
 
 Guile Scheme can be downloaded from:
 
-       <http://www.gnu.org/software/guile/guile.html>
-
-Ikarus Scheme can be downloaded from:
-
-       <http://www.cs.indiana.edu/~aghuloum/ikarus/>
-               <http://launchpad.net/ikarus>
+	http://www.gnu.org/software/guile/guile.html
 
 Larceny Scheme can be downloaded from:
 
-        <http://www.ccs.neu.edu/home/will/Larceny/>
-          <https://trac.ccs.neu.edu/trac/larceny/>
+	 http://www.ccs.neu.edu/home/will/Larceny/
+	   https://trac.ccs.neu.edu/trac/larceny/
 
 Mosh Scheme can be downloaded from:
 
-          <http://code.google.com/p/mosh-scheme/>
+	   http://code.google.com/p/mosh-scheme/
 
 Petite Chez Scheme can be downloaded from:
 
-                  <http://www.scheme.com/>
+		   http://www.scheme.com/
 
 Racket can be downloaded from:
 
-		 <http://racket-lang.org/>
+		  http://racket-lang.org/
 
 Ypsilon Scheme can be downloaded from:
 
-            <http://code.google.com/p/ypsilon/>
+	     http://code.google.com/p/ypsilon/
 
 Vicare Scheme can be downloaded from:
 
-      <http://github.com/marcomaggi/vicare/downloads>
-           <http://github.com/marcomaggi/vicare/>
+       http://github.com/marcomaggi/vicare/downloads
+	    http://github.com/marcomaggi/vicare/
 
 the home page of the Nausicaa project is at:
 
-	<http://marcomaggi.github.com/nausicaa.html>
+	 http://marcomaggi.github.com/nausicaa.html
 
 the  latest   version  of  the  Nausicaa   packages  can  be
 downloaded from:
 
-     <http://github.com/marcomaggi/nausicaa/downloads>
+      http://github.com/marcomaggi/nausicaa/downloads
 
 
 ### end of file

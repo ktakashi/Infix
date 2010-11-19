@@ -1,5 +1,5 @@
 To: comp.lang.scheme
-Subject: [announce] Infix 1.0.0, an infix to prefix transformer
+Subject: [announce] Infix 1.0.1, an infix to prefix transformer
 
 			   Infix
 			   =====
@@ -16,8 +16,8 @@ equivalent Scheme's prefix notation.
   The library has no dependencies; the implementation itself
 is a single, definitive, kill'em all DEFINE-SYNTAX form.
 
-  The library  supports Ikarus, Larceny,  Mosh, Petite Chez,
-PLT Scheme, Vicare and Ypsilon.
+  The  library supports Larceny,  Mosh, Petite  Chez, Racket
+(PLT Scheme), Vicare and Ypsilon.
 
   Detailed informations on usage are in the README file.
 
@@ -27,7 +27,7 @@ Download
 
 The last revision of this package can be downloaded from:
 
-     <http://github.com/marcomaggi/nausicaa/downloads>
+	     http://github.com/marcomaggi/infix
 
 
 License
