@@ -1,7 +1,7 @@
 ## Makefile --
 
 PACKAGE_NAME	= infix
-PACKAGE_VERSION	= 1.0.2
+PACKAGE_VERSION	= 1.0.3
 
 GUILE		= guile
 LARCENY		= larceny
