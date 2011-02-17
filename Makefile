@@ -11,7 +11,7 @@ RACKET		= plt-r6rs
 YPSILON		= ypsilon
 VICARE		= vicare
 
-GUILE_FLAGS	= -l guile-r6rs-setup.scm --autocompile -s
+GUILE_FLAGS	= -l guile-r6rs-setup.scm --auto-compile -s
 
 srcdir		= .
 testdir		= $(srcdir)/tests
