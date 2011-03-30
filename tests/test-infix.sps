@@ -25,6 +25,7 @@
 ;;;
 
 
+#!r6rs
 (import (rnrs) (infix infix))
 
 (define check-count		0)
