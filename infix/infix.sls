@@ -6,13 +6,18 @@
 ;;;
 ;;;Abstract
 ;;;
-;;;	The parser  table and  the general concept  of the package  is a
-;;;	rework of Guile-Arith by Ian Grant.
+;;;	The parser  table and the  general concept  of the package  is a
+;;;	rework of Guile-Arith  by Ian Grant.  The parser  driver is from
+;;;	the Lalr-scm package  by Dominique Boucher; the  parser table is
+;;;	also generated using Lalr-scm.  The  implementation of XOR is by
+;;;	Derick Eddington.
 ;;;
-;;;	  The parser  driver is from  the Lalr-scm package  by Dominique
-;;;	Boucher; the parser table is also generated using Lalr-scm.
+;;;	  The parser table  is build in the  Nausicaa/Scheme package and
+;;;	copied here, verbatim, from the file:
 ;;;
-;;;Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+;;;		nausicaa/language/infix/sexp-parser.sls
+;;;
+;;;Copyright (c) 2010, 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
 ;;;Copyright (c) 2005-2008 Dominique Boucher
 ;;;Copyright (C) 2000 The Free Software Foundation
 ;;;
@@ -31,10 +36,138 @@
 ;;;
 
 
+;;;; copyright notice for the XOR macro
+;;;
+;;;Copyright (c) 2008 Derick Eddington
+;;;
+;;;Permission is hereby granted, free of charge, to any person obtaining
+;;;a  copy of  this  software and  associated  documentation files  (the
+;;;"Software"), to  deal in the Software  without restriction, including
+;;;without limitation the  rights to use, copy,  modify, merge, publish,
+;;;distribute, sublicense,  and/or sell copies  of the Software,  and to
+;;;permit persons to whom the Software is furnished to do so, subject to
+;;;the following conditions:
+;;;
+;;;The  above  copyright notice  and  this  permission  notice shall  be
+;;;included in all copies or substantial portions of the Software.
+;;;
+;;;Except  as  contained  in  this  notice, the  name(s)  of  the  above
+;;;copyright holders  shall not be  used in advertising or  otherwise to
+;;;promote  the sale,  use or  other dealings  in this  Software without
+;;;prior written authorization.
+;;;
+;;;THE  SOFTWARE IS  PROVIDED "AS  IS",  WITHOUT WARRANTY  OF ANY  KIND,
+;;;EXPRESS OR  IMPLIED, INCLUDING BUT  NOT LIMITED TO THE  WARRANTIES OF
+;;;MERCHANTABILITY,    FITNESS   FOR    A    PARTICULAR   PURPOSE    AND
+;;;NONINFRINGEMENT.  IN NO EVENT  SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+;;;BE LIABLE  FOR ANY CLAIM, DAMAGES  OR OTHER LIABILITY,  WHETHER IN AN
+;;;ACTION OF  CONTRACT, TORT  OR OTHERWISE, ARISING  FROM, OUT OF  OR IN
+;;;CONNECTION  WITH THE SOFTWARE  OR THE  USE OR  OTHER DEALINGS  IN THE
+;;;SOFTWARE.
+
+
 #!r6rs
 (library (infix infix)
-  (export infix)
+  (export infix incr! decr! xor
+	  (rename (mod					%)
+		  (and					&&)
+		  (or					!!)
+		  (xor					^^)
+		  (not					~~))
+	  (rename (bitwise-and				&)
+		  (bitwise-ior				!)
+		  (bitwise-xor				^)
+		  (bitwise-not				~)
+		  (bitwise-arithmetic-shift-left	<<)
+		  (bitwise-arithmetic-shift-right	>>))
+	  (rename (fxand				fx&)
+		  (fxior				fx!)
+		  (fxxor				fx^)
+		  (fxnot				fx~)
+		  (fxarithmetic-shift-left		fx<<)
+		  (fxarithmetic-shift-right		fx>>)))
   (import (for (rnrs) run expand (meta 2)))
+
+
+;;;; helpers
+
+(define-syntax incr!
+  (syntax-rules ()))
+
+(define-syntax decr!
+  (syntax-rules ()))
+
+(define-syntax pre-incr
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?id)
+       (identifier? #'?id)
+       #'(begin
+	   (set! ?id (+ ?id 1))
+	   ?id))
+      ((_ ?expr)
+       #'(+ ?expr 1))
+      (_
+       (syntax-violation 'pre-incr "invalid pre-increment operation" (syntax->datum stx))))))
+
+(define-syntax pre-decr
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?id)
+       (identifier? #'?id)
+       #'(begin
+	   (set! ?id (- ?id 1))
+	   ?id))
+      ((_ ?expr)
+       #'(- ?expr 1))
+      (_
+       (syntax-violation 'pre-decr "invalid pre-decrement operation" (syntax->datum stx))))))
+
+(define-syntax post-incr
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?id)
+       (identifier? #'?id)
+       #'(let ((v ?id))
+	   (set! ?id (+ ?id 1))
+	   v))
+      ((_ ?expr)
+       #'(+ ?expr 1))
+      (_
+       (syntax-violation 'post-incr "invalid post-increment operation" (syntax->datum stx))))))
+
+(define-syntax post-decr
+  (lambda (stx)
+    (syntax-case stx ()
+      ((_ ?id)
+       (identifier? #'?id)
+       #'(let ((v ?id))
+	   (set! ?id (- ?id 1))
+	   v))
+      ((_ ?expr)
+       #'(- ?expr 1))
+      (_
+       (syntax-violation 'post-decr "invalid post-decrement operation" (syntax->datum stx))))))
+
+(define-syntax xor
+  (syntax-rules ()
+    ((_ expr ...)
+     (xor-aux #F expr ...))))
+
+(define-syntax xor-aux
+  (syntax-rules ()
+    ((_ r)
+     r)
+    ((_ r expr)
+     (let ((x expr))
+       (if r
+           (and (not x) r)
+	 x)))
+    ((_ r expr0 expr ...)
+     (let ((x expr0))
+       (and (or (not r) (not x))
+	    (let ((n (or r x)))
+	      (xor-aux n expr ...)))))))
 
 
 (define-syntax infix
@@ -44,25 +177,80 @@
     (define <lexical-token>-category	car)
     (define <lexical-token>-value	cdr)
 
-    ;;Constant tokens representing the recognised operators.
+    ;;; Constant tokens representing the recognised operators.
+    ;;
+    ;; Arithmetic operations.
     (define $add	(make-<lexical-token> 'ADD #'+))
     (define $sub	(make-<lexical-token> 'SUB #'-))
     (define $mul	(make-<lexical-token> 'MUL #'*))
-    (define $div	(make-<lexical-token> 'DIV #'/))
+    (define $/		(make-<lexical-token> 'DIV #'/))
     (define $mod	(make-<lexical-token> 'MOD #'mod))
+    (define $mod0	(make-<lexical-token> 'MOD #'mod0))
+    (define $div	(make-<lexical-token> 'DIV #'div))
+    (define $div0	(make-<lexical-token> 'DIV #'div0))
     (define $expt	(make-<lexical-token> 'EXPT #'expt))
-    (define $div0	(make-<lexical-token> 'DIV0 #'div))
+    ;; Comparison operators.
     (define $lt		(make-<lexical-token> 'LT #'<))
     (define $gt		(make-<lexical-token> 'GT #'>))
     (define $le		(make-<lexical-token> 'LE #'<=))
     (define $ge		(make-<lexical-token> 'GE #'>=))
     (define $eq		(make-<lexical-token> 'EQ #'=))
+    (define $eq?	(make-<lexical-token> 'EQ #'eq?))
+    (define $eqv?	(make-<lexical-token> 'EQ #'eqv?))
+    (define $equal?	(make-<lexical-token> 'EQ #'equal?))
+    ;; Increment and decrement.
+    (define $incr!	(make-<lexical-token> 'INCR	(cons #'pre-incr #'post-incr)))
+    (define $decr!	(make-<lexical-token> 'DECR	(cons #'pre-decr #'post-decr)))
+    ;; Logical operators
+    (define $and	(make-<lexical-token> 'AND	#'and))
+    (define $not	(make-<lexical-token> 'NOT	#'not))
+    (define $ior	(make-<lexical-token> 'IOR	#'or))
+    (define $xor	(make-<lexical-token> 'XOR	#'xor))
+    ;; bitwise operators
+    (define $bit-and	(make-<lexical-token> 'BIT-AND	#'bitwise-and))
+    (define $bit-ior	(make-<lexical-token> 'BIT-IOR	#'bitwise-ior))
+    (define $bit-xor	(make-<lexical-token> 'BIT-XOR	#'bitwise-xor))
+    (define $bit-not	(make-<lexical-token> 'BIT-NOT	#'bitwise-not))
+    (define $bit-shl	(make-<lexical-token> 'BIT-SHL	#'bitwise-arithmetic-shift-left))
+    (define $bit-shr	(make-<lexical-token> 'BIT-SHR	#'bitwise-arithmetic-shift-right))
+    ;;Fixnum operators.
+    (define $fxadd	(make-<lexical-token> 'ADD	#'fx+))
+    (define $fxsub	(make-<lexical-token> 'SUB	#'fx-))
+    (define $fxmul	(make-<lexical-token> 'MUL	#'fx*))
+    (define $fx/	(make-<lexical-token> 'DIV	#'fx/))
+    (define $fxdiv	(make-<lexical-token> 'DIV	#'fxdiv))
+    (define $fxdiv0	(make-<lexical-token> 'DIV	#'fxdiv0))
+    (define $fxmod	(make-<lexical-token> 'MOD	#'fxmod))
+    (define $fxmod0	(make-<lexical-token> 'MOD	#'fxmod0))
+    (define $fxlt	(make-<lexical-token> 'LT	#'fx<?))
+    (define $fxgt	(make-<lexical-token> 'GT	#'fx>?))
+    (define $fxle	(make-<lexical-token> 'LE	#'fx<=?))
+    (define $fxge	(make-<lexical-token> 'GE	#'fx>=?))
+    (define $fxeq	(make-<lexical-token> 'EQ	#'fx=?))
+    (define $fxbit-and	(make-<lexical-token> 'BIT-AND	#'fxand))
+    (define $fxbit-ior	(make-<lexical-token> 'BIT-IOR	#'fxior))
+    (define $fxbit-xor	(make-<lexical-token> 'BIT-XOR	#'fxxor))
+    (define $fxbit-not	(make-<lexical-token> 'BIT-NOT	#'fxnot))
+    (define $fxbit-shl	(make-<lexical-token> 'BIT-SHL	#'fxarithmetic-shift-left))
+    (define $fxbit-shr	(make-<lexical-token> 'BIT-SHR	#'fxarithmetic-shift-right))
+    ;;Flonum operators.
+    (define $fladd	(make-<lexical-token> 'ADD	#'fl+))
+    (define $flsub	(make-<lexical-token> 'SUB	#'fl-))
+    (define $flmul	(make-<lexical-token> 'MUL	#'fl*))
+    (define $fl/	(make-<lexical-token> 'DIV	#'fl/))
+    (define $flexpt	(make-<lexical-token> 'EXPT	#'flexpt))
+    (define $fllt	(make-<lexical-token> 'LT	#'fl<?))
+    (define $flgt	(make-<lexical-token> 'GT	#'fl>?))
+    (define $flle	(make-<lexical-token> 'LE	#'fl<=?))
+    (define $flge	(make-<lexical-token> 'GE	#'fl>=?))
+    (define $fleq	(make-<lexical-token> 'EQ	#'fl=?))
+    ;;Ternary if-then-else.
+    ;;
     ;;Here we  use the  #'if syntax  object as semantic  value: it  is a
     ;;trick to avoid  insertion of a raw value: the  parser will take it
     ;;and use it as the IF in the output form.
     (define $question	(make-<lexical-token> 'QUESTION-ID #'if))
     (define $colon	(make-<lexical-token> 'COLON-ID #':))
-
     ;;Special constant  tokens.  Notice that  the left and  right parens
     ;;tokens  are wrapped  in  a list  because  below they  are used  as
     ;;arguments to APPEND.
@@ -125,17 +313,69 @@
 			  ((+)		$add)
 			  ((-)		$sub)
 			  ((*)		$mul)
-			  ((/)		$div)
-			  ((% mod)	$mod)
-			  ((^ expt)	$expt)
-			  ((// div)	$div0)
+			  ((/)		$/)
+			  ((mod)	$mod)
+			  ((mod0)	$mod0)
+			  ((expt)	$expt)
+			  ((div)	$div)
+			  ((div0)	$div0)
 			  ((<)		$lt)
 			  ((>)		$gt)
 			  ((<=)		$le)
 			  ((>=)		$ge)
 			  ((=)		$eq)
+			  ((eq?)	$eq?)
+			  ((eqv?)	$eqv?)
+			  ((equal?)	$equal?)
 			  ((?)		$question)
 			  ((:)		$colon)
+
+			  ((incr!)	$incr!)
+			  ((decr!)	$decr!)
+
+			  ((and)	$and)
+			  ((not)	$not)
+			  ((or)		$ior)
+			  ((xor)	$xor)
+
+			  ((fx+)	$fxadd)
+			  ((fx-)	$fxsub)
+			  ((fx*)	$fxmul)
+			  ((fxdiv)	$fxdiv)
+			  ((fxdiv0)	$fxdiv0)
+			  ((fxmod)	$fxmod)
+			  ((fxmod0)	$fxmod0)
+			  ((fx<?)	$fxlt)
+			  ((fx>?)	$fxgt)
+			  ((fx<=?)	$fxle)
+			  ((fx>=?)	$fxge)
+			  ((fx=?)	$fxeq)
+
+			  ((fl+)	$fladd)
+			  ((fl-)	$flsub)
+			  ((fl*)	$flmul)
+			  ((fl/)	$fl/)
+			  ((flexpt)	$flexpt)
+			  ((fl<?)	$fllt)
+			  ((fl>?)	$flgt)
+			  ((fl<=?)	$flle)
+			  ((fl>=?)	$flge)
+			  ((fl=?)	$fleq)
+
+			  ((bitwise-and)			$bit-and)
+			  ((bitwise-ior)			$bit-ior)
+			  ((bitwise-xor)			$bit-xor)
+			  ((bitwise-not)			$bit-not)
+			  ((bitwise-arithmetic-shift-left)	$bit-shl)
+			  ((bitwise-arithmetic-shift-right)	$bit-shr)
+
+			  ((fxand)				$fxbit-and)
+			  ((fxior)				$fxbit-ior)
+			  ((fxxor)				$fxbit-xor)
+			  ((fxnot)				$fxbit-not)
+			  ((fxarithmetic-shift-left)		$fxbit-shl)
+			  ((fxarithmetic-shift-right)		$fxbit-shr)
+
 			  (else
 			   (make-<lexical-token> 'ID atom)))
 			reversed-tokens)))
@@ -242,7 +482,7 @@
 	      (error-handler "syntax error, unexpected token" lookahead)
 	      (let ((token (synchronise-parser/rewind-stack)))
 		;;If recovery succeeds: TOKEN  is set to the next lookahead.
-		;;If recovery fails: TOKEN is set to end--of--input.
+		;;If recovery fails: TOKEN is set to end-of-input.
 		(unless (eq? '*eoi* (<lexical-token>-category token))
 		  (reduce-using-default-actions))
 		token))
@@ -306,421 +546,445 @@
 	(parser-instance true-lexer error-handler yycustom))))
 
 
+;;; This function is taken from (nausicaa language infix sexp-parser).
     (define (make-infix-sexp-parser)
       (lr-driver
-       '#(((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . -19))
-	  ((*default* . -16) (LPAREN . 10))
-	  ((*default* . *error*)
-	   (*eoi* . 24)
-	   (QUESTION-ID . 23)
-	   (ADD . 22)
-	   (SUB . 21)
-	   (MUL . 20)
-	   (DIV . 19)
-	   (DIV0 . 18)
-	   (MOD . 17)
-	   (EXPT . 16)
-	   (LT . 15)
-	   (GT . 14)
-	   (LE . 13)
-	   (GE . 12)
-	   (EQ . 11))
-	  ((*default* . -15)
-	   (EQ . 11)
-	   (GE . 12)
-	   (LE . 13)
-	   (GT . 14)
-	   (LT . 15)
-	   (EXPT . 16)
-	   (MOD . 17)
-	   (DIV0 . 18)
-	   (DIV . 19)
-	   (MUL . 20))
-	  ((*default* . -14))
-	  ((*default* . *error*)
-	   (QUESTION-ID . 23)
-	   (RPAREN . 25)
-	   (ADD . 22)
-	   (SUB . 21)
-	   (MUL . 20)
-	   (DIV . 19)
-	   (DIV0 . 18)
-	   (MOD . 17)
-	   (EXPT . 16)
-	   (LT . 15)
-	   (GT . 14)
-	   (LE . 13)
-	   (GE . 12)
-	   (EQ . 11))
-	  ((*default* . -21) (SUB . 1) (ADD . 2) (LPAREN . 3) (NUM . 4) (ID . 5))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
+       '#(((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . -32))
+	  ((*default* . -29) (LPAREN . 18))
+	  ((*default* . *error*) (*eoi* . 41)
+           (QUESTION-ID . 40) (AND . 39) (IOR . 38)
+           (XOR . 37) (LT . 36) (GT . 35) (LE . 34)
+           (GE . 33) (EQ . 32) (ADD . 31) (SUB . 30)
+           (MUL . 29) (DIV . 28) (MOD . 27) (EXPT . 26)
+           (INCR . 25) (DECR . 24) (BIT-AND . 23)
+           (BIT-IOR . 22) (BIT-XOR . 21) (BIT-SHL . 20)
+           (BIT-SHR . 19))
+	  ((*default* . -26) (BIT-SHR . 19) (BIT-SHL . 20))
+	  ((*default* . -16) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25))
+	  ((*default* . -15) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25))
+	  ((*default* . -14) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27)
+           (DIV . 28) (MUL . 29))
+	  ((*default* . -13) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25))
+	  ((*default* . -22) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27)
+           (DIV . 28) (MUL . 29) (SUB . 30) (ADD . 31)
+           (EQ . 32) (GE . 33) (LE . 34) (GT . 35) (LT . 36))
+	  ((*default* . *error*) (QUESTION-ID . 40)
+           (RPAREN . 42) (AND . 39) (IOR . 38) (XOR . 37)
+           (LT . 36) (GT . 35) (LE . 34) (GE . 33) (EQ . 32)
+           (ADD . 31) (SUB . 30) (MUL . 29) (DIV . 28)
+           (MOD . 27) (EXPT . 26) (INCR . 25) (DECR . 24)
+           (BIT-AND . 23) (BIT-IOR . 22) (BIT-XOR . 21)
+           (BIT-SHL . 20) (BIT-SHR . 19))
+	  ((*default* . -34) (BIT-NOT . 1) (DECR . 2)
+           (INCR . 3) (SUB . 4) (ADD . 5) (NOT . 6)
+           (LPAREN . 7) (NUM . 8) (ID . 9))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . -18)) ((*default* . -17))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
 	  ((*default* . -1) (*eoi* . accept))
-	  ((*default* . -20))
-	  ((*default* . *error*) (RPAREN . 41))
-	  ((*default* . -24)
-	   (EQ . 11)
-	   (GE . 12)
-	   (LE . 13)
-	   (GT . 14)
-	   (LT . 15)
-	   (EXPT . 16)
-	   (MOD . 17)
-	   (DIV0 . 18)
-	   (DIV . 19)
-	   (MUL . 20)
-	   (SUB . 42)
-	   (ADD . 43)
-	   (LPAREN . 3)
-	   (NUM . 4)
-	   (QUESTION-ID . 23)
-	   (ID . 5))
-	  ((*default* . -13))
-	  ((*default* . -12))
-	  ((*default* . -11))
-	  ((*default* . -10))
-	  ((*default* . -9))
-	  ((*default* . -8) (EQ . 11) (GE . 12) (LE . 13) (GT . 14) (LT . 15))
-	  ((*default* . -7) (EQ . 11) (GE . 12) (LE . 13) (GT . 14) (LT . 15) (EXPT . 16))
-	  ((*default* . -6) (EQ . 11) (GE . 12) (LE . 13) (GT . 14) (LT . 15) (EXPT . 16) (MOD . 17))
-	  ((*default* . -4) (EQ . 11) (GE . 12) (LE . 13) (GT . 14) (LT . 15) (EXPT . 16) (MOD . 17))
-	  ((*default* . -5) (EQ . 11) (GE . 12) (LE . 13) (GT . 14) (LT . 15) (EXPT . 16) (MOD . 17))
-	  ((*default* . -3)
-	   (EQ . 11)
-	   (GE . 12)
-	   (LE . 13)
-	   (GT . 14)
-	   (LT . 15)
-	   (EXPT . 16)
-	   (MOD . 17)
-	   (DIV0 . 18)
-	   (DIV . 19)
-	   (MUL . 20))
-	  ((*default* . -2)
-	   (EQ . 11)
-	   (GE . 12)
-	   (LE . 13)
-	   (GT . 14)
-	   (LT . 15)
-	   (EXPT . 16)
-	   (MOD . 17)
-	   (DIV0 . 18)
-	   (DIV . 19)
-	   (MUL . 20))
-	  ((*default* . *error*)
-	   (QUESTION-ID . 23)
-	   (COLON-ID . 46)
-	   (ADD . 22)
-	   (SUB . 21)
-	   (MUL . 20)
-	   (DIV . 19)
-	   (DIV0 . 18)
-	   (MOD . 17)
-	   (EXPT . 16)
-	   (LT . 15)
-	   (GT . 14)
-	   (LE . 13)
-	   (GE . 12)
-	   (EQ . 11))
-	  ((*default* . -17))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . -22))
-	  ((*default* . -24)
-	   (EQ . 11)
-	   (GE . 12)
-	   (LE . 13)
-	   (GT . 14)
-	   (LT . 15)
-	   (EXPT . 16)
-	   (MOD . 17)
-	   (DIV0 . 18)
-	   (DIV . 19)
-	   (MUL . 20)
-	   (SUB . 42)
-	   (ADD . 43)
-	   (LPAREN . 3)
-	   (NUM . 4)
-	   (QUESTION-ID . 23)
-	   (ID . 5))
-	  ((*default* . *error*) (ID . 5) (NUM . 4) (LPAREN . 3) (ADD . 2) (SUB . 1))
-	  ((*default* . -3)
-	   (EQ . 11)
-	   (GE . 12)
-	   (LE . 13)
-	   (GT . 14)
-	   (LT . 15)
-	   (EXPT . 16)
-	   (MOD . 17)
-	   (DIV0 . 18)
-	   (DIV . 19)
-	   (MUL . 20))
-	  ((*default* . -2)
-	   (EQ . 11)
-	   (GE . 12)
-	   (LE . 13)
-	   (GT . 14)
-	   (LT . 15)
-	   (EXPT . 16)
-	   (MOD . 17)
-	   (DIV0 . 18)
-	   (DIV . 19)
-	   (MUL . 20))
-	  ((*default* . -23))
-	  ((*default* . -18)
-	   (EQ . 11)
-	   (GE . 12)
-	   (LE . 13)
-	   (GT . 14)
-	   (LT . 15)
-	   (EXPT . 16)
-	   (MOD . 17)
-	   (DIV0 . 18)
-	   (DIV . 19)
-	   (MUL . 20)
-	   (SUB . 21)
-	   (ADD . 22)
-	   (QUESTION-ID . 23)))
-       (vector
-        '((1 . 6))
-        '((1 . 7))
-        '((1 . 8))
-        '((1 . 9))
-        '()
-        '()
-        '()
-        '()
-        '()
-        '()
-        '((2 . 26) (1 . 27))
-        '((1 . 28))
-        '((1 . 29))
-        '((1 . 30))
-        '((1 . 31))
-        '((1 . 32))
-        '((1 . 33))
-        '((1 . 34))
-        '((1 . 35))
-        '((1 . 36))
-        '((1 . 37))
-        '((1 . 38))
-        '((1 . 39))
-        '((1 . 40))
-        '()
-        '()
-        '()
-        '((3 . 44) (1 . 45))
-        '()
-        '()
-        '()
-        '()
-        '()
-        '()
-        '()
-        '()
-        '()
-        '()
-        '()
-        '()
-        '()
-        '()
-        '((1 . 47))
-        '((1 . 48))
-        '()
-        '((3 . 49) (1 . 45))
-        '((1 . 50))
-        '()
-        '()
-        '()
-        '())
-       (vector
-        '()
-        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
-          $1)
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 3 1 (list $2 $1 $3) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 3 1 (list $2 $1 $3) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 3 1 (list $2 $1 $3) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 3 1 (list $2 $1 $3) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 3 1 (list $2 $1 $3) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 3 1 (list $2 $1 $3) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 3 1 (list $2 $1 $3) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 3 1 (list $2 $1 $3) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 3 1 (list $2 $1 $3) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 3 1 (list $2 $1 $3) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 3 1 (list $2 $1 $3) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 3 1 (list $2 $1 $3) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 2 1 $2 yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 2 1 (list $1 $2) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 1 1 $1 yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $4
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 4 1 (cons $1 $3) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $5
-		 $4
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 5 1 (list $2 $1 $3 $5) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 1 1 $1 yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push
-		 yypushback
-		 yycustom
-		 yy-stack-states
-		 $3
-		 $2
-		 $1
-		 .
-		 yy-stack-values)
-          (yy-reduce-pop-and-push 3 1 $2 yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states . yy-stack-values)
-          (yy-reduce-pop-and-push 0 2 '() yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 2 2 (cons $1 $2) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states $2 $1 . yy-stack-values)
-          (yy-reduce-pop-and-push 2 3 (cons $1 $2) yy-stack-states yy-stack-values))
-        (lambda (yy-reduce-pop-and-push yypushback yycustom yy-stack-states . yy-stack-values)
-          (yy-reduce-pop-and-push 0 3 '() yy-stack-states yy-stack-values)))))
+	  ((*default* . -33))
+	  ((*default* . *error*) (RPAREN . 65))
+	  ((*default* . -37) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-NOT . 1) (BIT-XOR . 21) (BIT-IOR . 22)
+           (BIT-AND . 23) (DECR . 66) (INCR . 67)
+           (EXPT . 26) (MOD . 27) (DIV . 28) (MUL . 29)
+           (SUB . 68) (ADD . 69) (EQ . 32) (GE . 33)
+           (LE . 34) (GT . 35) (LT . 36) (NOT . 6)
+           (XOR . 37) (IOR . 38) (AND . 39) (LPAREN . 7)
+           (NUM . 8) (QUESTION-ID . 40) (ID . 9))
+	  ((*default* . -28)) ((*default* . -27))
+	  ((*default* . -25) (BIT-SHR . 19) (BIT-SHL . 20))
+	  ((*default* . -24) (BIT-SHR . 19) (BIT-SHL . 20))
+	  ((*default* . -23) (BIT-SHR . 19) (BIT-SHL . 20))
+	  ((*default* . -7) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26))
+	  ((*default* . -6) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26))
+	  ((*default* . -4) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27))
+	  ((*default* . -5) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27))
+	  ((*default* . -3) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27)
+           (DIV . 28) (MUL . 29))
+	  ((*default* . -2) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27)
+           (DIV . 28) (MUL . 29))
+	  ((*default* . -12) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25))
+	  ((*default* . -11) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27)
+           (DIV . 28) (MUL . 29) (SUB . 30) (ADD . 31))
+	  ((*default* . -10) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27)
+           (DIV . 28) (MUL . 29) (SUB . 30) (ADD . 31))
+	  ((*default* . -9) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27)
+           (DIV . 28) (MUL . 29) (SUB . 30) (ADD . 31))
+	  ((*default* . -8) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27)
+           (DIV . 28) (MUL . 29) (SUB . 30) (ADD . 31))
+	  ((*default* . -21) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27)
+           (DIV . 28) (MUL . 29) (SUB . 30) (ADD . 31)
+           (EQ . 32) (GE . 33) (LE . 34) (GT . 35) (LT . 36))
+	  ((*default* . -20) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27)
+           (DIV . 28) (MUL . 29) (SUB . 30) (ADD . 31)
+           (EQ . 32) (GE . 33) (LE . 34) (GT . 35) (LT . 36))
+	  ((*default* . -19) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27)
+           (DIV . 28) (MUL . 29) (SUB . 30) (ADD . 31)
+           (EQ . 32) (GE . 33) (LE . 34) (GT . 35) (LT . 36))
+	  ((*default* . *error*) (QUESTION-ID . 40)
+           (COLON-ID . 72) (AND . 39) (IOR . 38) (XOR . 37)
+           (LT . 36) (GT . 35) (LE . 34) (GE . 33) (EQ . 32)
+           (ADD . 31) (SUB . 30) (MUL . 29) (DIV . 28)
+           (MOD . 27) (EXPT . 26) (INCR . 25) (DECR . 24)
+           (BIT-AND . 23) (BIT-IOR . 22) (BIT-XOR . 21)
+           (BIT-SHL . 20) (BIT-SHR . 19))
+	  ((*default* . -30))
+	  ((*default* . -18) (BIT-NOT . 1) (DECR . 2)
+           (INCR . 3))
+	  ((*default* . -17) (BIT-NOT . 1) (DECR . 2)
+           (INCR . 3))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . -35))
+	  ((*default* . -37) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-NOT . 1) (BIT-XOR . 21) (BIT-IOR . 22)
+           (BIT-AND . 23) (DECR . 66) (INCR . 67)
+           (EXPT . 26) (MOD . 27) (DIV . 28) (MUL . 29)
+           (SUB . 68) (ADD . 69) (EQ . 32) (GE . 33)
+           (LE . 34) (GT . 35) (LT . 36) (NOT . 6)
+           (XOR . 37) (IOR . 38) (AND . 39) (LPAREN . 7)
+           (NUM . 8) (QUESTION-ID . 40) (ID . 9))
+	  ((*default* . *error*) (ID . 9) (NUM . 8)
+           (LPAREN . 7) (NOT . 6) (ADD . 5) (SUB . 4)
+           (INCR . 3) (DECR . 2) (BIT-NOT . 1))
+	  ((*default* . -3) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27)
+           (DIV . 28) (MUL . 29))
+	  ((*default* . -2) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27)
+           (DIV . 28) (MUL . 29)) ((*default* . -36))
+	  ((*default* . -31) (BIT-SHR . 19) (BIT-SHL . 20)
+           (BIT-XOR . 21) (BIT-IOR . 22) (BIT-AND . 23)
+           (DECR . 24) (INCR . 25) (EXPT . 26) (MOD . 27)
+           (DIV . 28) (MUL . 29) (SUB . 30) (ADD . 31)
+           (EQ . 32) (GE . 33) (LE . 34) (GT . 35) (LT . 36)
+           (XOR . 37) (IOR . 38) (AND . 39)
+           (QUESTION-ID . 40)))
+       (vector '((1 . 10)) '((1 . 11)) '((1 . 12))
+	       '((1 . 13)) '((1 . 14)) '((1 . 15)) '((1 . 16))
+	       '((1 . 17)) '() '() '() '() '() '() '() '() '() '()
+	       '((2 . 43) (1 . 44)) '((1 . 45)) '((1 . 46))
+	       '((1 . 47)) '((1 . 48)) '((1 . 49)) '() '()
+	       '((1 . 50)) '((1 . 51)) '((1 . 52)) '((1 . 53))
+	       '((1 . 54)) '((1 . 55)) '((1 . 56)) '((1 . 57))
+	       '((1 . 58)) '((1 . 59)) '((1 . 60)) '((1 . 61))
+	       '((1 . 62)) '((1 . 63)) '((1 . 64)) '() '() '()
+	       '((3 . 70) (1 . 71)) '() '() '() '() '() '() '() '()
+	       '() '() '() '() '() '() '() '() '() '() '() '() '()
+	       '((1 . 12)) '((1 . 13)) '((1 . 73)) '((1 . 74)) '()
+	       '((3 . 75) (1 . 71)) '((1 . 76)) '() '() '() '())
+       (vector '()
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $2 $1 . yy-stack-values)
+		 $1)
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 2 1 $2 yy-stack-states
+					 yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 2 1 (list $1 $2)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 2 1 (list (car $1) $2)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 2 1 (list (car $1) $2)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 2 1 (list (cdr $2) $1)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 2 1 (list (cdr $2) $1)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 2 1 (list $1 $2)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 2 1 (list $1 $2)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 (list $2 $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 1 1 $1 yy-stack-states
+					 yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $4 $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 4 1 (cons $1 $3)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $5 $4 $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 5 1 (list $2 $1 $3 $5)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 1 1 $1 yy-stack-states
+					 yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $3 $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 3 1 $2 yy-stack-states
+					 yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states . yy-stack-values)
+		 (yy-reduce-pop-and-push 0 2 '() yy-stack-states
+					 yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 2 2 (cons $1 $2)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states $2 $1 . yy-stack-values)
+		 (yy-reduce-pop-and-push 2 3 (cons $1 $2)
+					 yy-stack-states yy-stack-values))
+	       (lambda
+		   (yy-reduce-pop-and-push yypushback yycustom
+					   yy-stack-states . yy-stack-values)
+		 (yy-reduce-pop-and-push 0 3 '() yy-stack-states
+					 yy-stack-values)))))
 
 
     (lambda (stx)
@@ -752,3 +1016,6 @@
 )
 
 ;;; end of file
+;; Local Variables:
+;; eval: (put 'case-stx 'scheme-indent-function 1)
+;; End:

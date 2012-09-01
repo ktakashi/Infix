@@ -1,23 +1,24 @@
 To: comp.lang.scheme
-Subject: [announce] Infix 1.0.1, an infix to prefix transformer
+Subject: [announce] Infix 2.0b0, an infix to prefix transformer
 
-			   Infix
-			   =====
+				 Infix
+				 =====
 
 
 Overview
 --------
 
-This package is a  distribution of libraries for R6RS Scheme
-implementations; it provides  the INFIX macro which converts
-the  traditional  infix  notation  for  expressions  to  the
-equivalent Scheme's prefix notation.
+This  package   is  a   distribution  of   libraries  for   R6RS  Scheme
+implementations;  it  provides  the   INFIX  macro  which  converts  the
+traditional infix  notation for  expressions to the  equivalent Scheme's
+prefix notation.
 
-  The library has no dependencies; the implementation itself
-is a single, definitive, kill'em all DEFINE-SYNTAX form.
+  The  library  has no  dependencies;  the  implementation itself  is  a
+single, definitive, kill'em all DEFINE-SYNTAX  form with the addition of
+a few auxiliary syntaxes.
 
-  The  library supports Larceny,  Mosh, Petite  Chez, Racket
-(PLT Scheme), Vicare and Ypsilon.
+  The library  attempts to  support Guile,  Larceny, Mosh,  Petite Chez,
+Racket, Vicare and Ypsilon.
 
   Detailed informations on usage are in the README file.
 
@@ -27,47 +28,108 @@ Download
 
 The last revision of this package can be downloaded from:
 
-	     http://github.com/marcomaggi/infix
+		  <http://github.com/marcomaggi/infix>
 
 
 License
 -------
 
-Copyright (c) 2010 Marco Maggi <marco.maggi-ipsu@poste.it>
+Copyright (c) 2010, 2012 Marco Maggi <marco.maggi-ipsu@poste.it>
+Copyright (c) 2008 Derick Eddington
 Copyright (c) 2005-2008 Dominique Boucher
 Copyright (C) 2000 The Free Software Foundation.
 
-This  program  is free  software:  you  can redistribute  it
-and/or modify it  under the terms of the  GNU General Public
-License as published by the Free Software Foundation, either
-version  3 of  the License,  or (at  your option)  any later
-version.
+This program is free software: you  can redistribute it and/or modify it
+under the  terms of the GNU  General Public License as  published by the
+Free Software Foundation,  either version 3 of the License,  or (at your
+option) any later version.
 
-This  program is  distributed in  the hope  that it  will be
-useful, but  WITHOUT ANY WARRANTY; without  even the implied
-warranty  of  MERCHANTABILITY or  FITNESS  FOR A  PARTICULAR
-PURPOSE.   See  the  GNU  General Public  License  for  more
-details.
+This program  is distributed  in the  hope that it  will be  useful, but
+WITHOUT   ANY   WARRANTY;  without   even   the   implied  warranty   of
+MERCHANTABILITY  or  FITNESS FOR  A  PARTICULAR  PURPOSE.  See  the  GNU
+General Public License for more details.
 
-You should  have received a  copy of the GNU  General Public
-License   along   with    this   program.    If   not,   see
-<http://www.gnu.org/licenses/>.
+You should have received a copy  of the GNU General Public License along
+with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
 Credits
 -------
 
-The library is the work  of Marco Maggi, the code is derived
-from  the Nausicaa/Scheme  distribution  of libraries.   The
-only way  to regenerate the parser  table is to  build it in
-Nausicaa/Scheme and copy it into the library here.
+The library  is the work  of Marco Maggi, the  code is derived  from the
+Nausicaa/Scheme distribution  of libraries.  The only  way to regenerate
+the parser table is to build it  in Nausicaa/Scheme and copy it into the
+library here.
 
-  The parser table and the general concept of the package is
-a rework of Guile-Arith by Ian Grant.
+  The parser table and the general concept of the package is a rework of
+Guile-Arith  by Ian  Grant.   The  parser driver  is  from the  Lalr-scm
+package by Dominique  Boucher, the parser table is  also generated using
+Lalr-scm.  The implementation of XOR is by Derick Eddington.
 
-  The  parser  driver  is   from  the  Lalr-scm  package  by
-Dominique Boucher, the parser  table is also generated using
-Lalr-scm.
+
+Release notes for version 2.0b0
+-------------------------------
+
+* With respect  to versions  1.x there  are some  backwards incompatible
+  changes:
+
+  - The identifier // is no more interpreted as an alias for DIV.
+
+  - The identifier ^ is no more interpreted as an alias for EXPT.
+
+* The purity  of "everything in  a single  macro" has been  corrupted to
+  allow using the definition of  the additional operators: INCR!, DECR!,
+  XOR.  (Notice that ++ and -- are *not* valid identifiers for R6RS.)
+
+* More operators are available using the functions defined by R6RS:
+
+     eq?				eqv?
+     equal?
+
+     bitwise-and			bitwise-ior
+     bitwise-xor			bitwise-not
+     bitwise-arithmetic-shift-left	bitwise-arithmetic-shift-right
+
+     fx+				fx-
+     fx*				fx/
+     fxdiv				fxdiv0
+     fxmod				fxmod0
+     fx<?				fx>?
+     fx<=?				fx>=?
+     fx=?				fxand
+     fxior				fxxor
+     fxnot
+     fxarithmetic-shift-left		fxarithmetic-shift-right
+
+     fl+				fl-
+     fl*				fl/
+     flexpt				fl=
+     fl<?				fl>?
+     fl<=?				fl>=?
+
+* The following binding aliases are exported by the library:
+
+      and				-> &&
+      or				-> !!
+      xor				-> ^^
+      not				-> ~~
+      mod				-> %
+      bitwise-and			-> &
+      bitwise-ior			-> !
+      bitwise-xor			-> ^
+      bitwise-not			-> ~
+      bitwise-arithmetic-shift-left	-> <<
+      bitwise-arithmetic-shift-right	-> >>
+      fxand				-> fx&
+      fxior				-> fx!
+      fxxor				-> fx^
+      fxnot				-> fx~
+      fxarithmetic-shift-left		-> fx<<
+      fxarithmetic-shift-right		-> fx>>
+
+  the exclamation  point !  is  ugly as  inclusive OR operator,  but the
+  vertical bar | is invalid as identifier name according to R6RS.
+
 
 --
 Marco Maggi
@@ -75,6 +137,6 @@ Marco Maggi
 ### end of file
 # Local Variables:
 # mode: text
-# fill-column: 60
+# fill-column: 72
 # paragraph-start: "*"
 # End:

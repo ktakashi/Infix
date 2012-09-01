@@ -1,7 +1,7 @@
 ## Makefile --
 
 PACKAGE_NAME	= infix
-PACKAGE_VERSION	= 1.0.3
+PACKAGE_VERSION	= 2.0b0
 
 GUILE		= guile
 LARCENY		= larceny
@@ -15,6 +15,8 @@ GUILE_FLAGS	= -l guile-r6rs-setup.scm --auto-compile -s
 
 srcdir		= .
 testdir		= $(srcdir)/tests
+
+## --------------------------------------------------------------------
 
 .PHONY: all test gtest ltest mtest ptest vtest ytest rtest
 
@@ -42,6 +44,14 @@ ytest:
 
 rtest:
 	$(RACKET) ++path $(srcdir) $(testdir)/test-infix.sps
+
+## --------------------------------------------------------------------
+
+.PHONY: vfasl
+
+vfasl:
+	VICARE_LIBRARY_PATH=$(PWD):$(VICARE_LIBRARY_PATH) \
+	$(VICARE) --compile-dependencies $(testdir)/test-infix.sps
 
 ## --------------------------------------------------------------------
 
