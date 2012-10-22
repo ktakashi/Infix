@@ -29,7 +29,7 @@ single, definitive, kill'em all DEFINE-SYNTAX  form with the addition of
 a few auxiliary syntaxes.
 
   The library  attempts to  support Guile,  Larceny, Mosh,  Petite Chez,
-Racket, Vicare and Ypsilon.
+Racket, Sagittarius, Vicare and Ypsilon.
 
 
 2. License
@@ -266,9 +266,10 @@ rules are defined:
   ltest - Run tests with Larceny
   mtest - Run tests with Mosh
   ptest - Run tests with Petite Chez
+  rtest - Run tests with Racket
+  stest - Run tests with Sagittarius
   vtest - Run tests with Vicare
   ytest - Run tests with Ypsilon
-  rtest - Run tests with Racket
 
 
 5. Installing
@@ -342,6 +343,10 @@ Petite Chez Scheme can be downloaded from:
 Racket can be downloaded from:
 
 		       <http://racket-lang.org/>
+
+Sagittarius Scheme can be downloaded from:
+
+	     <http://code.google.com/p/sagittarius-scheme/>
 
 Ypsilon Scheme can be downloaded from:
 
