@@ -8,8 +8,9 @@ LARCENY		= larceny
 MOSH		= mosh
 PETITE		= petite
 RACKET		= plt-r6rs
-YPSILON		= ypsilon
+SAGITTARIUS	= sash
 VICARE		= vicare
+YPSILON		= ypsilon
 
 GUILE_FLAGS	= -l guile-r6rs-setup.scm --auto-compile -s
 
@@ -18,11 +19,11 @@ testdir		= $(srcdir)/tests
 
 ## --------------------------------------------------------------------
 
-.PHONY: all test gtest ltest mtest ptest vtest ytest rtest
+.PHONY: all test gtest ltest mtest ptest stest vtest ytest rtest
 
 all:
 
-test: gtest ltest mtest ptest vtest ytest rtest
+test: gtest ltest mtest ptest stest vtest ytest rtest
 
 gtest:
 	GUILE_LOAD_PATH=. $(GUILE) $(GUILE_FLAGS) $(testdir)/test-infix.sps
@@ -35,6 +36,9 @@ mtest:
 
 ptest:
 	CHEZSCHEMELIBDIRS=. CHEZSCHEMELIBEXTS=.sls $(PETITE) --program $(testdir)/test-infix.sps
+
+stest:
+	$(SAGITTARIUS) -L$(PWD) $(testdir)/test-infix.sps
 
 vtest:
 	VICARE_LIBRARY_PATH=. $(VICARE) --r6rs-script $(testdir)/test-infix.sps
