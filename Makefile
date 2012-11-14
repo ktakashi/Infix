@@ -38,7 +38,8 @@ ptest:
 	CHEZSCHEMELIBDIRS=. CHEZSCHEMELIBEXTS=.sls $(PETITE) --program $(testdir)/test-infix.sps
 
 stest:
-	$(SAGITTARIUS) -L$(PWD) $(testdir)/test-infix.sps
+	SAGITTARIUS_LOADPATH=$(PWD) $(SAGITTARIUS) $(testdir)/test-infix.sps
+#	$(SAGITTARIUS) -L$(PWD) $(testdir)/test-infix.sps
 
 vtest:
 	VICARE_LIBRARY_PATH=. $(VICARE) --r6rs-script $(testdir)/test-infix.sps
