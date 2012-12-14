@@ -68,7 +68,7 @@
 
 #!r6rs
 (library (infix infix)
-  (export infix incr! decr! xor
+  (export infix incr! decr! xor ? :
 	  (rename (mod					%)
 		  (and					&&)
 		  (or					!!)
@@ -90,6 +90,9 @@
 
 
 ;;;; helpers
+;; for Sagittarius it requires bindings to detect proper free identifier
+(define-syntax ? (syntax-rules ()))
+(define-syntax : (syntax-rules ()))
 
 (define-syntax incr!
   (syntax-rules ()))
@@ -407,6 +410,17 @@
 	      (stack-states		'(0))
 	      (reuse-last-token	#f))
 
+	  (define-inline (current-state)
+	    (car stack-states))
+
+	  (define-inline (stack-push! state value)
+	    (set! stack-states (cons state stack-states))
+	    (set! stack-values (cons value stack-values)))
+
+	  (define-inline (stack-pop!)
+	    (set! stack-states (cdr stack-states))
+	    (set! stack-values (cdr stack-values)))
+
 	  (define (main lookahead)
 	    (let ((category (<lexical-token>-category lookahead)))
 	      (if (eq? '*lexer-error* category)
@@ -525,17 +539,6 @@
 			   (skip-token (lexer))))))))
 
 	    (%main))
-
-	  (define-inline (current-state)
-	    (car stack-states))
-
-	  (define-inline (stack-push! state value)
-	    (set! stack-states (cons state stack-states))
-	    (set! stack-values (cons value stack-values)))
-
-	  (define-inline (stack-pop!)
-	    (set! stack-states (cdr stack-states))
-	    (set! stack-values (cdr stack-values)))
 
 	  (main (lexer))))
 
